@@ -1,12 +1,12 @@
 
 import akka.actor.{ActorSystem, ActorPath, ActorRef, Props}
 import akka.testkit.{TestKit, ImplicitSender}
-import akka.dispatch.{Future, Await}
-import akka.util.duration._
 import akka.util.Timeout
 import akka.pattern.{pipe, ask}
 import org.scalatest.{WordSpec, BeforeAndAfterAll}
 import org.scalatest.matchers.MustMatchers
+import scala.concurrent.{Await, Future}
+import scala.concurrent.duration._
 
 class TestWorker(masterLocation: ActorPath) extends Worker(masterLocation) {
   // We'll use the current dispatcher for the execution context.
@@ -36,6 +36,8 @@ class WorkerSpec extends TestKit(ActorSystem("WorkerSpec"))
        with MustMatchers {
 
   implicit val askTimeout = Timeout(1 second)
+  implicit val ec = system.dispatcher
+
   override def afterAll() {
     system.shutdown()
   }
