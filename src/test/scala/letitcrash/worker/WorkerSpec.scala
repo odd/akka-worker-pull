@@ -1,3 +1,4 @@
+package letitcrash.worker
 
 import akka.actor.{ActorSystem, ActorPath, ActorRef, Props}
 import akka.testkit.{TestKit, ImplicitSender}
@@ -7,6 +8,7 @@ import org.scalatest.{WordSpec, BeforeAndAfterAll}
 import org.scalatest.matchers.MustMatchers
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
+import letitscrash.worker.{Master, Worker}
 
 class TestWorker(masterLocation: ActorPath) extends Worker(masterLocation) {
   // We'll use the current dispatcher for the execution context.

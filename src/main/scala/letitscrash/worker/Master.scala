@@ -1,32 +1,24 @@
-import akka.actor.{Actor, ActorLogging, ActorRef, Terminated}
+package letitscrash.worker
 
-object MasterWorkerProtocol {
-  // Messages from Workers
-  case class WorkerCreated(worker: ActorRef)
-  case class WorkerRequestsWork(worker: ActorRef)
-  case class WorkIsDone(worker: ActorRef)
-
-  // Messages to Workers
-  case class WorkToBeDone(work: Any)
-  case object WorkIsReady
-  case object NoWorkToBeDone
-}
+import akka.actor.{Terminated, ActorLogging, Actor, ActorRef}
+import letitscrash.worker.MasterWorkerProtocol._
+import letitscrash.worker.MasterWorkerProtocol.WorkerRequestsWork
+import letitscrash.worker.MasterWorkerProtocol.WorkerCreated
 
 class Master extends Actor with ActorLogging {
-  import MasterWorkerProtocol._
   import scala.collection.mutable.{Map, Queue}
 
   // Holds known workers and what they may be working on
-  val workers = Map.empty[ActorRef, Option[Tuple2[ActorRef, Any]]]
+  val workers = Map.empty[ActorRef, Option[(ActorRef, Any)]]
   // Holds the incoming list of work to be done as well
   // as the memory of who asked for it
-  val workQ = Queue.empty[Tuple2[ActorRef, Any]]
+  val workQ = Queue.empty[(ActorRef, Any)]
 
   // Notifies workers that there's work available, provided they're
   // not already working on something
   def notifyWorkers(): Unit = {
     if (!workQ.isEmpty) {
-      workers.foreach { 
+      workers.foreach {
         case (worker, m) if (m.isEmpty) => worker ! WorkIsReady
         case _ =>
       }
@@ -84,4 +76,16 @@ class Master extends Actor with ActorLogging {
       workQ.enqueue(sender -> work)
       notifyWorkers()
   }
+}
+
+object MasterWorkerProtocol {
+  // Messages from Workers
+  case class WorkerCreated(worker: ActorRef)
+  case class WorkerRequestsWork(worker: ActorRef)
+  case class WorkIsDone(worker: ActorRef)
+
+  // Messages to Workers
+  case class WorkToBeDone(work: Any)
+  case object WorkIsReady
+  case object NoWorkToBeDone
 }

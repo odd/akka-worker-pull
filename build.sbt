@@ -1,4 +1,6 @@
-name := "LetItCrash"
+name := "worker"
+
+organization := "letitcrash"
 
 version := "0.1"
 

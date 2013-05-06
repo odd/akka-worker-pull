@@ -1,11 +1,15 @@
+package letitscrash.worker
+
 import akka.actor.{Actor, ActorLogging, ActorPath, ActorRef}
+import letitscrash.worker.MasterWorkerProtocol._
+import letitscrash.worker.MasterWorkerProtocol.WorkerCreated
+import letitscrash.worker.MasterWorkerProtocol.WorkToBeDone
 
 abstract class Worker(masterLocation: ActorPath)
   extends Actor with ActorLogging {
-  import MasterWorkerProtocol._
 
   // We need to know where the master is
-  val master = context.actorFor(masterLocation)
+  def master = context.actorFor(masterLocation)
 
   // This is how our derivations will interact with us.  It
   // allows dervations to complete work asynchronously
@@ -14,7 +18,7 @@ abstract class Worker(masterLocation: ActorPath)
   // Required to be implemented
   def doWork(workSender: ActorRef, work: Any): Unit
 
-  // Notify the Master that we're alive
+  // Notify the master that we're alive
   override def preStart() = master ! WorkerCreated(self)
 
   // This is the state we're in when we're working on something.
@@ -27,7 +31,7 @@ abstract class Worker(masterLocation: ActorPath)
     case NoWorkToBeDone =>
     // Pass... we shouldn't even get this
     case WorkToBeDone(_) =>
-      log.error("Yikes. Master told me to do work, while I'm working.")
+      log.error("Yikes. letitscrash.worker.Master told me to do work, while I'm working.")
     // Our derivation has completed its task
     case WorkComplete(result) =>
       log.info("Work is complete.  Result {}.", result)
@@ -41,7 +45,7 @@ abstract class Worker(masterLocation: ActorPath)
   // two messages that make sense while we're in this state, and
   // we deal with them specially here
   def idle: Receive = {
-    // Master says there's work to be done, let's ask for it
+    // letitscrash.worker.Master says there's work to be done, let's ask for it
     case WorkIsReady =>
       log.info("Requesting work")
       master ! WorkerRequestsWork(self)
